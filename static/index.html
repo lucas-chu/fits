@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fits — room critic</title>
+  <style>
+    :root {
+      --ink: #17140f;
+      --paper: #f3ecdf;
+      --paper-2: #e7dcc8;
+      --sidebar: #1a1714;
+      --sidebar-ink: #f3ecdf;
+      --muted: #8d8476;
+      --line: rgba(23, 20, 15, 0.16);
+      --stamp: #9d1c1c;
+      --good: #1d6b43;
+      --maybe: #8a5a12;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 100vh;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+    }
+    aside {
+      background: var(--sidebar);
+      color: var(--sidebar-ink);
+      padding: 28px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .mark {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .mark h1 {
+      margin: 0;
+      font-size: 42px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      line-height: 0.9;
+    }
+    .mark span, .kicker, .models, label, button, .meta, .status, table, .stamp, .note {
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
+    .mark span {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #c8bba6;
+    }
+    .lede {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.35;
+      max-width: 18em;
+    }
+    form { display: grid; gap: 10px; }
+    label {
+      display: grid;
+      gap: 4px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #c8bba6;
+    }
+    input {
+      width: 100%;
+      border: 1px solid rgba(243, 236, 223, 0.35);
+      background: transparent;
+      color: var(--sidebar-ink);
+      font: inherit;
+      font-family: "Iowan Old Style", Palatino, Georgia, serif;
+      font-size: 16px;
+      padding: 8px 10px;
+    }
+    input:focus { outline: 1px solid #f3ecdf; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      border: 1px solid var(--sidebar-ink);
+      background: var(--sidebar-ink);
+      color: var(--sidebar);
+      padding: 10px 8px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    button.ghost {
+      background: transparent;
+      color: var(--sidebar-ink);
+    }
+    button:disabled { opacity: 0.45; cursor: wait; }
+    .models { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .models li {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 8px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .models b { font-weight: 600; display: block; }
+    .models em { font-style: normal; color: #c8bba6; }
+    .status {
+      min-height: 2.6em;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #c8bba6;
+    }
+    #listings { display: grid; gap: 0; }
+    .listing {
+      border-top: 1px solid rgba(243, 236, 223, 0.16);
+      padding: 10px 0;
+      color: var(--sidebar-ink);
+    }
+    .listing.winner {
+      background: var(--paper);
+      color: var(--ink);
+      margin: 0 -24px;
+      padding: 12px 24px;
+    }
+    .listing .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-family: "SF Mono", ui-monospace, Menlo, monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+    .listing h3 {
+      margin: 4px 0;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .listing p { margin: 0; font-size: 14px; line-height: 1.35; }
+    aside, main { min-width: 0; }
+    main { padding: 32px 40px 64px; }
+    .sheet-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: end;
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 14px;
+    }
+    .sheet-head h2 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      max-width: 16em;
+    }
+    .sheet-head p { margin: 6px 0 0; font-size: 16px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+    .chips span, .tag {
+      border: 1px solid var(--ink);
+      padding: 4px 6px;
+      font-family: "SF Mono", ui-monospace, Menlo, monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+    .hero {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1.4fr 0.8fr;
+      gap: 22px;
+      align-items: start;
+    }
+    figure { margin: 0; }
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: var(--paper-2);
+      border: 1px solid var(--ink);
+    }
+    figcaption, .note {
+      margin-top: 6px;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: #5c564c;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 7px 0; border-bottom: 1px solid var(--line); }
+    th { font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; }
+    td.missing { color: var(--stamp); }
+    .verdict {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+    .stamp {
+      border: 3px solid var(--stamp);
+      color: var(--stamp);
+      display: inline-block;
+      padding: 8px 10px 6px;
+      font-size: 28px;
+      letter-spacing: 0.14em;
+      transform: rotate(-2deg);
+    }
+    .stamp.fit { color: var(--good); border-color: var(--good); }
+    .stamp.maybe { color: var(--maybe); border-color: var(--maybe); }
+    .stamp.no { color: var(--stamp); border-color: var(--stamp); }
+    .verdict h3 { margin: 0 0 8px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; font-family: "SF Mono", ui-monospace, Menlo, monospace; }
+    ul, ol { margin: 0; padding-left: 18px; }
+    li { margin: 0 0 8px; font-size: 17px; line-height: 1.35; }
+    .split { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .desc {
+      margin-top: 14px;
+      font-size: 16px;
+      line-height: 1.4;
+      max-height: 7.2em;
+      overflow: auto;
+    }
+    a { color: inherit; }
+    .empty {
+      margin-top: 28px;
+      font-size: 22px;
+      max-width: 22em;
+      line-height: 1.35;
+    }
+    @media (max-width: 1100px) {
+      .hero, .split { grid-template-columns: 1fr; }
+      main { padding: 28px 28px 48px; }
+    }
+    @media (max-width: 760px) {
+      body { grid-template-columns: 1fr; }
+      .verdict { grid-template-columns: 1fr; }
+      main { padding: 24px 18px 48px; }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <div class="mark">
+      <h1>Fits</h1>
+      <span>room critic</span>
+    </div>
+    <p class="lede">A price and a wide photo do not say whether you can work, sleep, and cook there.</p>
+    <form id="search-form">
+      <label>Max rent
+        <input id="max-rent" name="max_rent" type="number" min="200" max="20000" value="3200">
+      </label>
+      <label>Neighborhood
+        <input id="neighborhood" name="neighborhood" type="text" value="Mission" maxlength="80">
+      </label>
+      <label>Must-haves
+        <input id="must-haves" name="must_haves" type="text" value="a desk, a real window, and a bed" maxlength="300">
+      </label>
+      <label>Listing URL, optional
+        <input id="listing-url" name="listing_url" type="url" placeholder="Paste a Zillow or Craigslist URL" maxlength="500">
+      </label>
+      <div class="actions">
+        <button id="find" type="submit">Find rooms</button>
+        <button id="replay" class="ghost" type="button">Replay</button>
+      </div>
+    </form>
+    <ol class="models">
+      <li><b>01</b><span><b>muse-spark-1.3</b><em>ranks description and location. No pixels.</em></span></li>
+      <li><b>02</b><span><b>sam-3.1</b><em>boxes window, desk, bed, sink, closet.</em></span></li>
+      <li><b>03</b><span><b>muse-spark-1.3</b><em>verdict from the measurements.</em></span></li>
+      <li><b>04</b><span><b>muse-image-1.0</b><em>furniture-only desk. No people.</em></span></li>
+    </ol>
+    <p id="status" class="status">Opening the local replay.</p>
+    <div id="listings"></div>
+  </aside>
+  <main id="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2 id="headline">Can you live here?</h2>
+        <p id="subhead">Indie · Build for Your World · 100% new work on Nov 4, 2026</p>
+      </div>
+      <div class="chips" id="chips">
+        <span>sam-3.1</span>
+        <span>muse-spark-1.3</span>
+        <span>muse-image-1.0</span>
+      </div>
+    </div>
+    <p id="empty" class="empty">Replay loads a drawn room so this page works with no API key.</p>
+    <div id="report" hidden></div>
+  </main>
+  <script>
+    const statusEl = document.querySelector("#status");
+    const listingsEl = document.querySelector("#listings");
+    const reportEl = document.querySelector("#report");
+    const emptyEl = document.querySelector("#empty");
+    const headlineEl = document.querySelector("#headline");
+    const findBtn = document.querySelector("#find");
+    const replayBtn = document.querySelector("#replay");
+
+    function setBusy(busy) {
+      findBtn.disabled = busy;
+      replayBtn.disabled = busy;
+    }
+
+    function safeUrl(url) {
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.href;
+      } catch (err) {}
+      return "";
+    }
+
+    function money(listing) {
+      return listing.price_label || (listing.price ? "$" + listing.price.toLocaleString() : "rent n/a");
+    }
+
+    function renderListings(data) {
+      listingsEl.replaceChildren();
+      (data.listings || []).forEach((listing) => {
+        const card = document.createElement("article");
+        card.className = "listing" + (listing.id === data.winner_id ? " winner" : "");
+        const row = document.createElement("div");
+        row.className = "row";
+        const left = document.createElement("span");
+        left.textContent = (listing.id === data.winner_id ? "Winner · " : "") + (listing.source || "listing");
+        const right = document.createElement("span");
+        right.textContent = [money(listing), listing.score != null ? String(listing.score) : ""].filter(Boolean).join(" · ");
+        row.append(left, right);
+        const title = document.createElement("h3");
+        title.textContent = listing.title || "Listing";
+        const place = document.createElement("p");
+        place.textContent = listing.neighborhood || listing.location || "";
+        card.append(row, title, place);
+        if (listing.reason) {
+          const reason = document.createElement("p");
+          reason.textContent = listing.reason;
+          card.append(reason);
+        }
+        const href = safeUrl(listing.url || "");
+        if (href) {
+          const link = document.createElement("p");
+          const anchor = document.createElement("a");
+          anchor.href = href;
+          anchor.target = "_blank";
+          anchor.rel = "noopener";
+          anchor.textContent = "Open listing";
+          link.append(anchor);
+          card.append(link);
+        }
+        listingsEl.append(card);
+      });
+    }
+
+    function addFigure(src, caption) {
+      const figure = document.createElement("figure");
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = caption;
+      const cap = document.createElement("figcaption");
+      cap.textContent = caption;
+      figure.append(img, cap);
+      return figure;
+    }
+
+    function render(data) {
+      renderListings(data);
+      const winner = (data.listings || []).find((listing) => listing.id === data.winner_id);
+      const hasReport = winner && (data.verdict || (data.images && data.images.overlay) || (data.measurements || []).length);
+      emptyEl.hidden = hasReport;
+      reportEl.hidden = !hasReport;
+      reportEl.replaceChildren();
+      if (!winner) {
+        headlineEl.textContent = "Can you live here?";
+        if ((data.listings || []).length) {
+          emptyEl.hidden = false;
+          emptyEl.textContent = data.notice || "Listings are in. Ranking needs MODEL_API_KEY, or open Replay.";
+        }
+        return;
+      }
+      headlineEl.textContent = winner.title || "Winner";
+      const where = document.createElement("p");
+      where.className = "desc";
+      where.textContent = [winner.location, winner.description].filter(Boolean).join(" — ");
+
+      if (data.images && data.images.overlay) {
+        const hero = document.createElement("div");
+        hero.className = "hero";
+        hero.append(addFigure(data.images.overlay, "sam-3.1 boxes on the winner"));
+        const tableWrap = document.createElement("div");
+        const table = document.createElement("table");
+        const head = document.createElement("tr");
+        ["Object", "Finding", "% of photo"].forEach((label) => {
+          const th = document.createElement("th");
+          th.textContent = label;
+          head.append(th);
+        });
+        table.append(head);
+        (data.measurements || []).forEach((item) => {
+          const tr = document.createElement("tr");
+          const name = document.createElement("td");
+          name.textContent = item.prompt;
+          const finding = document.createElement("td");
+          finding.textContent = item.error ? "request failed" : item.found ? "found" : (item.finding || "empty mask");
+          if (!item.found) finding.className = "missing";
+          const pct = document.createElement("td");
+          pct.textContent = item.found ? item.area_percent + "%" : "0%";
+          tr.append(name, finding, pct);
+          table.append(tr);
+        });
+        tableWrap.append(table);
+        if (data.photo_note) {
+          const note = document.createElement("p");
+          note.className = "note";
+          note.textContent = data.photo_note;
+          tableWrap.append(note);
+        }
+        hero.append(tableWrap);
+        reportEl.append(hero);
+      }
+
+      reportEl.append(where);
+
+      if (data.verdict) {
+        const block = document.createElement("section");
+        block.className = "verdict";
+        const stamp = document.createElement("div");
+        stamp.className = "stamp " + (data.verdict.fit || "maybe");
+        stamp.textContent = (data.verdict.fit || "maybe").toUpperCase();
+        const copy = document.createElement("div");
+        const h = document.createElement("h3");
+        h.textContent = "muse-spark-1.3 verdict";
+        const bullets = document.createElement("ul");
+        (data.verdict.bullets || []).forEach((line) => {
+          const li = document.createElement("li");
+          li.textContent = line;
+          bullets.append(li);
+        });
+        const qh = document.createElement("h3");
+        qh.textContent = "Ask the leasing agent";
+        const questions = document.createElement("ol");
+        (data.verdict.questions || []).forEach((line) => {
+          const li = document.createElement("li");
+          li.textContent = line;
+          questions.append(li);
+        });
+        copy.append(h, bullets, qh, questions);
+        block.append(stamp, copy);
+        reportEl.append(block);
+      }
+
+      if (data.images && (data.images.before || data.images.after)) {
+        const split = document.createElement("div");
+        split.className = "split";
+        if (data.images.before) split.append(addFigure(data.images.before, "Before · winner photo"));
+        if (data.images.after) {
+          split.append(addFigure(data.images.after, "After · muse-image-1.0, furniture only"));
+        } else if (data.images.edit_error) {
+          const note = document.createElement("p");
+          note.className = "note";
+          note.textContent = data.images.edit_error;
+          split.append(note);
+        }
+        reportEl.append(split);
+      }
+    }
+
+    async function loadReplay() {
+      setBusy(true);
+      statusEl.textContent = "Replay · local trace · no model calls.";
+      try {
+        const response = await fetch("/api/replay");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Replay failed");
+        render(data);
+        statusEl.textContent = data.notice || "Replay · local trace · no model calls.";
+      } catch (err) {
+        statusEl.textContent = err.message || "Replay failed";
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function findRooms(event) {
+      event.preventDefault();
+      setBusy(true);
+      statusEl.textContent = "Craigslist, then muse-spark-1.3, sam-3.1, and muse-image-1.0.";
+      const body = {
+        max_rent: Number(document.querySelector("#max-rent").value || 3200),
+        neighborhood: document.querySelector("#neighborhood").value,
+        must_haves: document.querySelector("#must-haves").value,
+        listing_url: document.querySelector("#listing-url").value.trim(),
+      };
+      try {
+        const response = await fetch("/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Search failed");
+        render(data);
+        const count = (data.listings || []).length;
+        const zillow = data.zillow_status ? " " + data.zillow_status : "";
+        statusEl.textContent = (data.notice || (count + " listings.")) + zillow;
+      } catch (err) {
+        statusEl.textContent = err.message || "Search failed";
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    document.querySelector("#search-form").addEventListener("submit", findRooms);
+    replayBtn.addEventListener("click", loadReplay);
+    loadReplay();
+  </script>
+</body>
+</html>
