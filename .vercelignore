@@ -1,0 +1,9 @@
+.venv
+.env
+.env.*
+!.env.example
+.git
+__pycache__
+*.pyc
+.DS_Store
+.vercel

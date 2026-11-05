@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "fits": {
+      "root": ".",
+      "framework": "fastapi",
+      "entrypoint": "app.main:app",
+      "buildCommand": "pip install -r requirements.txt"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "fits"
+      }
+    }
+  ]
+}

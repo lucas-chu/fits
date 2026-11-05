@@ -16,7 +16,7 @@ All calls go to `https://api.meta.ai/v1` with `Authorization: Bearer $MODEL_API_
 | `sam-3.1` | `POST /v1/responses` | Boxes and masks for five noun prompts on the **winning photo only**: window, desk, bed, kitchen sink, closet. Five calls run in parallel. Local Pillow code turns each box into a percent of the image. An empty mask is a finding ("no desk"), not an error. |
 | `muse-image-1.0` | `POST /v1/images/edits` | One edited image: a narrow standing desk in the window light. Furniture only. No people. |
 
-**Live (temporary tunnel, may go offline):** https://lovely-michel-wage-dawn.trycloudflare.com — permanent deploy: create a Render web service from this repo (`render.yaml` is included) and set `MODEL_API_KEY` there.
+**Live:** https://fits-gamma.vercel.app (Vercel, `MODEL_API_KEY` set on the project)
 
 ## Quickstart
 
